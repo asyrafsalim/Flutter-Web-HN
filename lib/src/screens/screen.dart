@@ -1,6 +1,12 @@
-import 'package:flutter_web/material.dart';
+// TODO: return list widget on response
+import 'dart:convert';
 
-enum PageTitle { News, Past, Comments, Ask, Show, Jobs }
+import 'package:flutter_web/material.dart';
+import 'package:http/http.dart' as http;
+
+import '../utils/constants.dart';
+
+enum PageTitle { Top, New, Best, Ask, Show, Job }
 
 class Screen extends StatefulWidget {
   // Screen widget is a StatefulWidget which is responsible for creating and disposing the bloc
@@ -10,6 +16,7 @@ class Screen extends StatefulWidget {
 class _ScreenState extends State<Screen> {
   String _appTitle;
   int _selectedIndex;
+  List _stories;
 
   @override
   void initState() {
@@ -17,14 +24,50 @@ class _ScreenState extends State<Screen> {
     super.initState();
     _appTitle = "Hacker News";
     _selectedIndex = 0;
+    _stories = [1];
   }
 
   void _onItemTapped(int index) {
     String _pageName = PageTitle.values[index].toString().split(".").last;
+
+    // fetch page
+    _fetchPage(_pageName);
+
     setState(() {
       _appTitle = _pageName;
       _selectedIndex = index;
     });
+  }
+
+  void getStories(String url) async {
+    var _res = await http.get(url);
+    final jsonResponse = json.decode(_res.body);
+    setState(() {
+      _stories = jsonResponse;
+    });
+  }
+
+  void _fetchPage(String page) async {
+    switch (page) {
+      case "Top":
+        getStories(Top_URL);
+        break;
+      case "New":
+        getStories(New_URL);
+        break;
+      case "Best":
+        getStories(Best_URL);
+        break;
+      case "Ask":
+        getStories(Ask_URL);
+        break;
+      case "Show":
+        getStories(Show_URL);
+        break;
+      case "Job":
+        getStories(Job_URL);
+        break;
+    }
   }
 
   @override
@@ -62,7 +105,7 @@ class _ScreenState extends State<Screen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'Hacker News App!!',
+              _stories.first.toString(),
             ),
           ],
         ),
@@ -82,15 +125,15 @@ class _ScreenState extends State<Screen> {
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
-              title: Text('News'),
+              title: Text('Top'),
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.fast_rewind),
-              title: Text('Past'),
+              title: Text('New'),
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.chat),
-              title: Text('Comments'),
+              title: Text('Best'),
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.reply),
@@ -102,7 +145,7 @@ class _ScreenState extends State<Screen> {
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.card_travel),
-              title: Text('Jobs'),
+              title: Text('Job'),
             ),
           ],
           onTap: _onItemTapped,
