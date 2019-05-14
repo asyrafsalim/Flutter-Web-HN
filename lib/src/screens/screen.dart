@@ -2,25 +2,28 @@ import 'package:flutter_web/material.dart';
 
 enum PageTitle { News, Past, Comments, Ask, Show, Jobs }
 
-class Home extends StatefulWidget {
-  // Home widget is a StatefulWidget which is responsible for creating and disposing the bloc
-  State<Home> createState() => _HomeState();
+class Screen extends StatefulWidget {
+  // Screen widget is a StatefulWidget which is responsible for creating and disposing the bloc
+  State<Screen> createState() => _ScreenState();
 }
 
-class _HomeState extends State<Home> {
+class _ScreenState extends State<Screen> {
   String _appTitle;
+  int _selectedIndex;
 
   @override
   void initState() {
     // init blocs
     super.initState();
     _appTitle = "Hacker News";
+    _selectedIndex = 0;
   }
 
   void _onItemTapped(int index) {
     String _pageName = PageTitle.values[index].toString().split(".").last;
     setState(() {
       _appTitle = _pageName;
+      _selectedIndex = index;
     });
   }
 
@@ -65,34 +68,45 @@ class _HomeState extends State<Home> {
         ),
       ),
       // This trailing comma makes auto-formatting nicer for build methods.
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            title: Text('News'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.business),
-            title: Text('Past'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.school),
-            title: Text('Comments'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.school),
-            title: Text('Ask'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.school),
-            title: Text('Show'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.school),
-            title: Text('Jobs'),
-          ),
-        ],
-        onTap: _onItemTapped,
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(
+          canvasColor: Colors.orange,
+          primaryColor: Colors.white,
+          textTheme: Theme.of(context).textTheme.copyWith(
+                caption: TextStyle(color: Colors.orangeAccent),
+              ),
+        ),
+        child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          currentIndex: _selectedIndex,
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              title: Text('News'),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.fast_rewind),
+              title: Text('Past'),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.chat),
+              title: Text('Comments'),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.reply),
+              title: Text('Ask'),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.remove_red_eye),
+              title: Text('Show'),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.card_travel),
+              title: Text('Jobs'),
+            ),
+          ],
+          onTap: _onItemTapped,
+        ),
       ),
     );
   }
