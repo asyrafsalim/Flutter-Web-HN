@@ -1,4 +1,3 @@
-// TODO: return list widget on response
 import 'dart:convert';
 
 import 'package:flutter_web/material.dart';
@@ -24,7 +23,9 @@ class _ScreenState extends State<Screen> {
     super.initState();
     _appTitle = "Hacker News";
     _selectedIndex = 0;
-    _stories = [1];
+    _stories = [];
+
+    _fetchPage("Top");
   }
 
   void _onItemTapped(int index) {
@@ -39,35 +40,101 @@ class _ScreenState extends State<Screen> {
     });
   }
 
-  void getStories(String url) async {
+  void _getStories(String url) async {
+    List _s = [];
+
     var _res = await http.get(url);
     final jsonResponse = json.decode(_res.body);
-    setState(() {
-      _stories = jsonResponse;
-    });
+
+    if (jsonResponse is List) {
+      if (jsonResponse.length < 10) {
+        for (var storyId in jsonResponse) {
+          var item = await _getStoryItem(storyId);
+          _s.add(item);
+        }
+      } else {
+        for (var i = 0; i < 10; i++) {
+          var item = await _getStoryItem(jsonResponse[i]);
+          _s.add(item);
+        }
+      }
+
+      setState(() {
+        _stories = _s;
+      });
+    }
+  }
+
+  Future<dynamic> _getStoryItem(story) async {
+    var _storyItem = await http.get("$Item_URL$story.json");
+    return json.decode(_storyItem.body);
   }
 
   void _fetchPage(String page) async {
     switch (page) {
       case "Top":
-        getStories(Top_URL);
+        _getStories(Top_URL);
         break;
       case "New":
-        getStories(New_URL);
+        _getStories(New_URL);
         break;
       case "Best":
-        getStories(Best_URL);
+        _getStories(Best_URL);
         break;
       case "Ask":
-        getStories(Ask_URL);
+        _getStories(Ask_URL);
         break;
       case "Show":
-        getStories(Show_URL);
+        _getStories(Show_URL);
         break;
       case "Job":
-        getStories(Job_URL);
+        _getStories(Job_URL);
         break;
     }
+  }
+
+  List<Widget> _storyCells(List stories, BuildContext context) {
+    List<Widget> s = [];
+
+    if (stories.isNotEmpty) {
+      for (var i = 0; i < stories.length; i++) {
+        var story = stories[i];
+
+        s.add(Center(
+          child: Card(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                ListTile(
+                  leading: Text(
+                    (i + 1).toString(),
+                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.w600),
+                  ),
+                  title: Text("${story['title']}"),
+                  subtitle: Text("${story['type']} by ${story['by']}."),
+                ),
+                ButtonTheme.bar(
+                  // make buttons use the appropriate styles for cards
+                  child: ButtonBar(
+                    children: <Widget>[
+                      FlatButton(
+                        child: Text('Read'),
+                        onPressed: () {
+                          Scaffold.of(context).showSnackBar(
+                              SnackBar(content: Text("URL: ${story['url']}")));
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ));
+      }
+    }
+
+    return s;
   }
 
   @override
@@ -84,31 +151,11 @@ class _ScreenState extends State<Screen> {
           ),
         ),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (choose the "Toggle Debug Paint" action
-          // from the Flutter Inspector in Android Studio, or the "Toggle Debug
-          // Paint" command in Visual Studio Code) to see the wireframe for each
-          // widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              _stories.first.toString(),
+      body: Builder(
+        builder: (bodyContext) => ListView(
+              padding: const EdgeInsets.all(10.0),
+              children: _storyCells(_stories, bodyContext),
             ),
-          ],
-        ),
       ),
       // This trailing comma makes auto-formatting nicer for build methods.
       bottomNavigationBar: Theme(
@@ -116,7 +163,7 @@ class _ScreenState extends State<Screen> {
           canvasColor: Colors.orange,
           primaryColor: Colors.white,
           textTheme: Theme.of(context).textTheme.copyWith(
-                caption: TextStyle(color: Colors.orangeAccent),
+                caption: TextStyle(color: Colors.orange[100]),
               ),
         ),
         child: BottomNavigationBar(

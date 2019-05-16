@@ -11,3 +11,8 @@ webdev serve --auto restart
 ```bash
 webdev build
 ```
+
+## Limitations
+
+- flutter_web does not support opening of external links yet
+- current list of stories are limited to 10 as pagination is not built yet
